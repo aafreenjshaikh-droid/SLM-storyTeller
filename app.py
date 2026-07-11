@@ -24,9 +24,9 @@ def generate_story(prompt):
         "Content-Type": "application/json"
     }
     
-    # Using the standard structured chat format compatible with the updated router
+    # Switched to the widely supported Qwen2.5 model
     payload = {
-        "model": "microsoft/Phi-3-mini-4k-instruct",
+        "model": "Qwen/Qwen2.5-7B-Instruct",
         "messages": [
             {
                 "role": "user",
@@ -42,7 +42,6 @@ def generate_story(prompt):
         
         if response.status_code == 200:
             res_json = response.json()
-            # Extract content from the structured chat completion structure
             if "choices" in res_json and len(res_json["choices"]) > 0:
                 return res_json["choices"][0]["message"]["content"].strip()
             return str(res_json)
@@ -68,12 +67,9 @@ if st.button("Generate & Narrate Story"):
         if not story_text.startswith("⚠️") and not story_text.startswith("Error") and not story_text.startswith("Network"):
             with st.spinner("Synthesizing audio narration..."):
                 try:
-                    # Convert generated text to audio speech using gTTS
                     tts = gTTS(text=story_text, lang='en', slow=False)
                     audio_path = "story_narration.mp3"
                     tts.save(audio_path)
-                    
-                    # Render the native audio component
                     st.audio(audio_path, format="audio/mp3")
                 except Exception as e:
                     st.error(f"Audio generation failed: {e}")
