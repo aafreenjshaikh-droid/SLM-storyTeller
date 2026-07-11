@@ -33,8 +33,8 @@ def generate_story(prompt):
                 "content": f"Write a very short, engaging, exactly 3-sentence children's story based on this prompt: {prompt}"
             }
         ],
-        "max_tokens": 250,
-        "temperature": 0.1
+        "max_tokens": 800,
+        "temperature": 0.8
     }
     
     try:
