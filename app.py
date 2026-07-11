@@ -8,7 +8,7 @@ import edge_tts
 st.set_page_config(page_title="AI Audio Storyteller", page_icon="📖", layout="centered")
 
 # --- Custom Premium CSS Styling (Glassmorphism UI) ---
-def apply_custom_ui(background_url="https://images.unsplash.com/photo-1519681393784-d120267933ba"):
+def apply_custom_ui(background_url):
     st.markdown(f"""
     <style>
     /* Dynamic full-screen background */
@@ -18,7 +18,7 @@ def apply_custom_ui(background_url="https://images.unsplash.com/photo-1519681393
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
-        transition: background 1.5s ease-in-out;
+        transition: background 1.0s ease-in-out;
     }}
     
     /* Make header transparent */
@@ -51,7 +51,7 @@ def apply_custom_ui(background_url="https://images.unsplash.com/photo-1519681393
         color: #ffffff !important;
     }}
     
-    /* FIX: Force user typed text in inputs to be dark/black for readability */
+    /* Force user typed text in inputs to be dark/black for readability */
     .stTextInput>div>div>input {{
         background: rgba(255, 255, 255, 0.85) !important;
         color: #111111 !important;
@@ -60,7 +60,7 @@ def apply_custom_ui(background_url="https://images.unsplash.com/photo-1519681393
         font-weight: 500;
     }}
     
-    /* FIX: Force Streamlit primary buttons text and styles to stark contrast */
+    /* Force Streamlit primary buttons text and styles to stark contrast */
     .stButton>button {{
         background-color: rgba(255, 255, 255, 0.9) !important;
         border: 1px solid rgba(255, 255, 255, 0.8) !important;
@@ -82,10 +82,11 @@ def apply_custom_ui(background_url="https://images.unsplash.com/photo-1519681393
     </style>
     """, unsafe_allow_html=True)
 
-# Initialize app with a beautiful default starry sky background
+# Initialize app session state defaults
 if "bg_url" not in st.session_state:
     st.session_state.bg_url = "https://images.unsplash.com/photo-1519681393784-d120267933ba"
 
+# Execute application UI design shell
 apply_custom_ui(st.session_state.bg_url)
 
 # App UI Header
@@ -137,7 +138,9 @@ def generate_story_and_mood(prompt):
             mood_response = requests.post(API_URL, headers=headers, json=payload_mood, timeout=10)
             mood_keyword = "default"
             if mood_response.status_code == 200:
+                # Sanitizes output word from quotes or accidental punctuation punctuation marks
                 mood_keyword = mood_response.json()["choices"][0]["message"]["content"].strip().lower()
+                mood_keyword = mood_keyword.replace(".", "").replace('"', '').replace("'", "").split()[0]
             
             return story_text, mood_keyword
         else:
@@ -158,8 +161,12 @@ if st.button("Generate & Narrate Story"):
         with st.spinner("The SLM is weaving a magical tale and feeling the mood..."):
             story_text, mood = generate_story_and_mood(user_prompt)
         
+        # Validates story output and updates wallpaper state dynamically 
         if not story_text.startswith("⚠️") and not story_text.startswith("Error") and not story_text.startswith("Network"):
-            st.session_state.bg_url = f"https://source.unsplash.com/featured/1600x900/?{mood},landscape"
+            # Generates a pristine high resolution landscape asset based on the processed story atmosphere keyword
+            st.session_state.bg_url = f"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&h=900&q=80&sig={mood}"
+            
+            # Instantly injects layout update seamlessly
             apply_custom_ui(st.session_state.bg_url)
             
         st.markdown(f'<div class="story-card"><h3>📜 The Story</h3><p>{story_text.replace("\n", "<br>")}</p></div>', unsafe_allow_html=True)
