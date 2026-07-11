@@ -40,17 +40,44 @@ def apply_custom_ui(background_url="https://images.unsplash.com/photo-1519681393
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }}
     
-    /* Styling adjustments for text elements to make them pop */
-    h1, h2, h3, p, label {{
+    /* Styling adjustments for headers and paragraph layout text */
+    h1, h2, h3, .story-card p, label {{
         color: #ffffff !important;
         font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }}
     
+    /* Main body text description color rules */
+    [data-testid="stWidgetLabel"] p {{
+        color: #ffffff !important;
+    }}
+    
+    /* FIX: Force user typed text in inputs to be dark/black for readability */
     .stTextInput>div>div>input {{
-        background: rgba(255, 255, 255, 0.2) !important;
-        color: white !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        color: #111111 !important;
         border-radius: 8px !important;
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        font-weight: 500;
+    }}
+    
+    /* FIX: Force Streamlit primary buttons text and styles to stark contrast */
+    .stButton>button {{
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border: 1px solid rgba(255, 255, 255, 0.8) !important;
+        border-radius: 8px !important;
+        transition: all 0.2s ease-in-out;
+    }}
+    
+    .stButton>button p {{
+        color: #111111 !important;
+        font-weight: 600 !important;
+    }}
+    
+    /* Button Hover interaction animation */
+    .stButton>button:hover {{
+        background-color: #ffffff !important;
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(255,255,255,0.3);
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -62,7 +89,7 @@ if "bg_url" not in st.session_state:
 apply_custom_ui(st.session_state.bg_url)
 
 # App UI Header
-st.title("📖 SLM Audio Storyteller")
+st.title("📖 Audio Storyteller By Aafreen")
 st.write("Enter an idea, and watch the SLM weave a tale narrated by a lifelike neural voice with matching ambiance!")
 
 # User input prompt
@@ -82,7 +109,6 @@ def generate_story_and_mood(prompt):
         "Content-Type": "application/json"
     }
     
-    # 1. Generate the creative story
     creative_instruction = (
         f"Write a highly creative, enchanting, and detailed children's story based on this theme: '{prompt}'. "
         f"Use vivid sensory details, magical descriptions, and a clear story arc. "
@@ -101,7 +127,6 @@ def generate_story_and_mood(prompt):
         if response.status_code == 200:
             story_text = response.json()["choices"][0]["message"]["content"].strip()
             
-            # 2. Extract a one-word background mood based on the generated story
             mood_instruction = f"Based on this story, provide exactly one single keyword representing the setting/environment (e.g., 'jungle', 'space', 'ocean', 'castle', 'desert'). Do not include punctuation or other words: {story_text}"
             payload_mood = {
                 "model": "Qwen/Qwen2.5-7B-Instruct",
@@ -133,12 +158,10 @@ if st.button("Generate & Narrate Story"):
         with st.spinner("The SLM is weaving a magical tale and feeling the mood..."):
             story_text, mood = generate_story_and_mood(user_prompt)
         
-        # If successfully generated, swap the background layout dynamically using Unsplash source queries
         if not story_text.startswith("⚠️") and not story_text.startswith("Error") and not story_text.startswith("Network"):
             st.session_state.bg_url = f"https://source.unsplash.com/featured/1600x900/?{mood},landscape"
             apply_custom_ui(st.session_state.bg_url)
             
-        # Display elegant transparent text card
         st.markdown(f'<div class="story-card"><h3>📜 The Story</h3><p>{story_text.replace("\n", "<br>")}</p></div>', unsafe_allow_html=True)
         
         if not story_text.startswith("⚠️") and not story_text.startswith("Error") and not story_text.startswith("Network"):
