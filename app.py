@@ -23,14 +23,19 @@ def generate_story(prompt):
         "Authorization": f"Bearer {HF_TOKEN}",
         "Content-Type": "application/json"
     }
-    
+    # Custom prompt engineering for creative, multi-paragraph tales
+    creative_instruction = (
+        f"Write a highly creative, enchanting, and detailed children's story based on this theme: '{prompt}'. "
+        f"Use vivid sensory details, magical descriptions, and a clear story arc (beginning, middle, and end). "
+        f"Make it an engaging adventure spanning 3 to 4 distinct paragraphs."
+    )
     # Switched to the widely supported Qwen2.5 model
     payload = {
         "model": "Qwen/Qwen2.5-7B-Instruct",
         "messages": [
             {
                 "role": "user",
-                "content": f"Write a very short, engaging, exactly 3-sentence children's story based on this prompt: {prompt}"
+                "content": creative_instruction
             }
         ],
         "max_tokens": 800,
