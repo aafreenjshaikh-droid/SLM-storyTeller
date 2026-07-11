@@ -1,3 +1,5 @@
 streamlit
-gTTS
 requests
+gtts
+click>=8.1.0,<8.2.0
+huggingface-hub<0.26.0
